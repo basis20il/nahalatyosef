@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #C8963E;
+  --gold-light: #E8B86D;
+  --gold-dark: #9B6E22;
+  --navy: #0D1B2A;
+  --cream: #FAF6EF;
+  --parchment: #F0E8D8;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Heebo', sans-serif;
+  background: #FAF6EF;
+  color: #0D1B2A;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F0E8D8; }
+::-webkit-scrollbar-thumb { background: #C8963E; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9B6E22; }
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid #C8963E;
+  outline-offset: 2px;
+}
+
+/* Input autofill override */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 50px white inset;
+}
+
+@layer utilities {
+  .text-shadow-gold {
+    text-shadow: 0 2px 20px rgba(200, 150, 62, 0.3);
+  }
+}
