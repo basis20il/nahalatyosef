@@ -351,9 +351,26 @@ function AskRabbi() {
     if (Object.keys(errs).length) { setErrors(errs); return }
     setErrors({})
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1200))
+    try {
+      const res = await fetch('https://formspree.io/f/REPLACE_ME', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          topic: form.topic,
+          question: form.question,
+          _subject: 'שאלה לרב: ' + form.topic,
+        }),
+      })
+      if (res.ok) { setSent(true) }
+      else { alert('אירעה שגיאה. נסו שוב או פנו בוואטסאפ.') }
+    } catch { alert('אירעה שגיאה בשליחה.') }
     setLoading(false)
-    setSent(true)
+  }
+
+  const handleWhatsApp = () => {
+    const msg = encodeURIComponent(`שלום, שמי ${form.name||'___'}. נושא: ${form.topic||'___'}. שאלה: ${form.question||'___'}`)
+    window.open('https://wa.me/97289945080?text=' + msg, '_blank')
   }
 
   return (
@@ -467,6 +484,24 @@ function AskRabbi() {
                         <span>שולח...</span>
                       </>
                     ) : 'שלח שאלה'}
+                  </button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-[#E8DCC2]"/>
+                    <span className="text-xs text-[#9B8A7A]">או</span>
+                    <div className="flex-1 h-px bg-[#E8DCC2]"/>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleWhatsApp}
+                    className="w-full py-3.5 rounded-2xl bg-[#25D366] text-white font-semibold text-[15px] hover:bg-[#1ebe5d] transition-all flex items-center justify-center gap-3"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.553 4.103 1.523 5.827L.057 23.57a.5.5 0 0 0 .613.612l5.833-1.488A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.663-.513-5.18-1.406l-.371-.218-3.845.982.997-3.742-.236-.386A9.975 9.975 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                    </svg>
+                    שלח בוואטסאפ
                   </button>
 
                   <p className="text-center text-[#9B8A7A] text-xs">
@@ -727,7 +762,7 @@ function Footer() {
           },
           {
             title: 'יצירת קשר',
-            links: ['טל׳: 08-0000000', 'info@nahalat-yosef.org', 'ת.ד 123 באר שבע', 'א׳–ה׳ 09:00–18:00'],
+            links: ['טל׳: 08-9945080', 'basis20@gmail.com', 'אור לציון 3, נתיבות', 'בתאום מראש'],
           },
           {
             title: 'מידע משפטי',
@@ -760,7 +795,7 @@ function Footer() {
 function WhatsAppFAB() {
   return (
     <a
-      href="https://wa.me/972500000000"
+      href="https://wa.me/97289945080"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 left-6 w-14 h-14 rounded-full bg-[#25D366] text-white shadow-2xl hover:scale-110 hover:shadow-[0_8px_30px_rgba(37,211,102,0.5)] transition-all duration-300 z-50 flex items-center justify-center"
@@ -794,6 +829,113 @@ function ScrollTop() {
   )
 }
 
+/* ─── ACCESSIBILITY WIDGET ─── */
+function AccessibilityWidget() {
+  const [open, setOpen] = useState(false)
+  const [fontSize, setFontSize] = useState(100)
+  const [contrast, setContrast] = useState(false)
+  const [links, setLinks] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = fontSize + '%'
+  }, [fontSize])
+
+  useEffect(() => {
+    document.body.classList.toggle('high-contrast', contrast)
+  }, [contrast])
+
+  useEffect(() => {
+    document.body.classList.toggle('highlight-links', links)
+  }, [links])
+
+  const reset = () => {
+    setFontSize(100)
+    setContrast(false)
+    setLinks(false)
+  }
+
+  return (
+    <>
+      <style>{`
+        body.high-contrast { filter: contrast(1.5) brightness(1.1); }
+        body.highlight-links a { outline: 2px solid #C8963E !important; background: #FFF9EC !important; border-radius: 3px; }
+      `}</style>
+
+      {/* Toggle button */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="fixed bottom-24 left-6 w-14 h-14 rounded-full bg-[#0D1B2A] text-white shadow-2xl hover:bg-[#C8963E] transition-all duration-300 z-50 flex items-center justify-center border-2 border-[#C8963E]/40"
+        aria-label="תפריט נגישות"
+        title="נגישות"
+      >
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="4" r="2"/>
+          <path d="M12 6c-3.3 0-6 2.7-6 6h2c0-2.2 1.8-4 4-4s4 1.8 4 4h2c0-3.3-2.7-6-6-6z" opacity=".5"/>
+          <path d="M12 10l-3 8h2l1-3 1 3h2l-3-8z"/>
+        </svg>
+      </button>
+
+      {/* Panel */}
+      <div
+        className={`fixed bottom-40 left-6 z-50 bg-white rounded-2xl shadow-2xl border border-[#E8DCC2] w-64 transition-all duration-300 overflow-hidden ${
+          open ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
+      >
+        <div className="bg-[#0D1B2A] text-white px-5 py-4 flex items-center justify-between">
+          <span className="font-bold text-sm">הגדרות נגישות</span>
+          <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white">✕</button>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Font size */}
+          <div>
+            <p className="text-xs font-semibold text-[#6B5A46] mb-2">גודל טקסט</p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setFontSize(f => Math.max(80, f - 10))}
+                className="w-9 h-9 rounded-xl bg-[#FAF6EF] border border-[#E8DCC2] text-lg font-bold hover:bg-[#C8963E]/10 transition"
+              >א-</button>
+              <div className="flex-1 text-center text-sm font-medium text-[#2C1F0E]">{fontSize}%</div>
+              <button
+                onClick={() => setFontSize(f => Math.min(140, f + 10))}
+                className="w-9 h-9 rounded-xl bg-[#FAF6EF] border border-[#E8DCC2] text-lg font-bold hover:bg-[#C8963E]/10 transition"
+              >א+</button>
+            </div>
+          </div>
+
+          {/* Contrast */}
+          <button
+            onClick={() => setContrast(!contrast)}
+            className={`w-full py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
+              contrast ? 'bg-[#0D1B2A] text-white border-[#0D1B2A]' : 'border-[#E8DCC2] text-[#4A3728] hover:border-[#C8963E]'
+            }`}
+          >
+            {contrast ? '✓ ' : ''}ניגודיות גבוהה
+          </button>
+
+          {/* Highlight links */}
+          <button
+            onClick={() => setLinks(!links)}
+            className={`w-full py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
+              links ? 'bg-[#C8963E] text-white border-[#C8963E]' : 'border-[#E8DCC2] text-[#4A3728] hover:border-[#C8963E]'
+            }`}
+          >
+            {links ? '✓ ' : ''}הדגשת קישורים
+          </button>
+
+          {/* Reset */}
+          <button
+            onClick={reset}
+            className="w-full py-2 rounded-xl text-xs text-[#9B8A7A] hover:text-[#C8963E] transition"
+          >
+            איפוס הגדרות
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 /* ─── APP ─── */
 export default function App() {
   return (
@@ -811,6 +953,7 @@ export default function App() {
       </main>
       <Footer />
       <WhatsAppFAB />
+      <AccessibilityWidget />
       <ScrollTop />
     </div>
   )
