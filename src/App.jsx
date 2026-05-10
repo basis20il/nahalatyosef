@@ -352,7 +352,7 @@ function AskRabbi() {
     setErrors({})
     setLoading(true)
     try {
-      const res = await fetch('https://formspree.io/f/xojrpjpn', {
+      const res = await fetch('https://formspree.io/f/REPLACE_ME', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
@@ -649,50 +649,123 @@ function Stats() {
 }
 
 /* ─── DONATE ─── */
-const NEDARIM_BASE = 'https://www.matara.pro/nedarimplus/online/?mosad=7011565&Redirect=https%3A%2F%2F089945080.xyz%2F'
-
-const DONATE_AMOUNTS = [
-  { label: '₪36', value: 36, desc: 'תרומה קטנה' },
-  { label: '₪72', value: 72, desc: 'תרומת לב' },
-  { label: '₪180', value: 180, desc: 'מומלץ ⭐' },
-  { label: '₪360', value: 360, desc: 'תרומה נכבדה' },
-  { label: '₪720', value: 720, desc: 'תרומת שנה' },
-  { label: '₪1800', value: 1800, desc: 'תורם מכובד' },
-]
+/* ─── DONATE DATA ─── */
+const MOSAD = '7011565'
+const BASE = `https://www.matara.pro/nedarimplus/online/?mosad=${MOSAD}`
 
 const DONATE_CAUSES = [
-  { id: 'general', label: 'כללי', emoji: '✡️' },
-  { id: 'torah', label: 'שיעורי תורה', emoji: '📖' },
-  { id: 'kolel', label: 'כולל אברכים', emoji: '🎓' },
-  { id: 'chesed', label: 'חסד ומשפחות', emoji: '🏠' },
+  {
+    id: 'merkaz',
+    label: 'מרכז רוחני ובית הוראה',
+    shortLabel: 'בית הוראה',
+    emoji: '📖',
+    groupe: 'תרומה למרכז הרוחני נחלת יוסף ופעילות בית ההוראה',
+  },
+  {
+    id: 'kolachi',
+    label: 'קול אחי — חיבור ואחדות',
+    shortLabel: 'קול אחי',
+    emoji: '🤝',
+    groupe: 'קול אחי - ארגון חברתי לחיבור ואחדות בין כל חלקי העם',
+  },
+  {
+    id: 'beersheva',
+    label: 'פעילות בשכונות באר שבע',
+    shortLabel: 'באר שבע',
+    emoji: '🌆',
+    groupe: 'פעילות ענק בשכונות ומדרשיות באר שבע',
+  },
+  {
+    id: 'tipul',
+    label: 'תשלום עבור טיפול',
+    shortLabel: 'טיפול',
+    emoji: '💙',
+    groupe: 'תשלום עבור טיפול',
+  },
+]
+
+const DONATE_AMOUNTS = [
+  { value: 36,   desc: 'תרומת לב' },
+  { value: 72,   desc: 'תרומה קטנה' },
+  { value: 180,  desc: 'מומלץ', featured: true },
+  { value: 360,  desc: 'תרומה נכבדה' },
+  { value: 720,  desc: 'תרומת שנה' },
+  { value: 1800, desc: 'תורם מכובד' },
+]
+
+const PAYMENT_METHODS = [
+  {
+    id: 'normal',
+    label: 'כרטיס אשראי',
+    desc: 'ויזה / מסטרקארד',
+    param: 'OnlyNormal=1',
+    icon: (
+      <svg width="28" height="20" viewBox="0 0 48 32" fill="none">
+        <rect width="48" height="32" rx="4" fill="#1A1F71"/>
+        <rect y="8" width="48" height="8" fill="#F7B600"/>
+        <text x="6" y="26" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial">VISA</text>
+      </svg>
+    ),
+  },
+  {
+    id: 'bit',
+    label: 'ביט',
+    desc: 'תשלום מהיר',
+    param: 'OnlyBit=1',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 60 60" fill="none">
+        <circle cx="30" cy="30" r="30" fill="#FF6B35"/>
+        <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold" fontFamily="Arial">bit</text>
+      </svg>
+    ),
+  },
+  {
+    id: 'keva',
+    label: 'הוראת קבע',
+    desc: 'בנקאית חודשית',
+    param: 'onlykeva=1',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'digital',
+    label: 'העברה בקליק',
+    desc: 'מחשבון הבנק',
+    param: 'OnlyDigitalTransfer=1',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M12 2v20M2 12h20"/>
+        <circle cx="12" cy="12" r="9"/>
+      </svg>
+    ),
+  },
 ]
 
 function Donate() {
   const [amount, setAmount] = useState(180)
   const [custom, setCustom] = useState('')
-  const [freq, setFreq] = useState('one')
-  const [cause, setCause] = useState('general')
+  const [cause, setCause] = useState('merkaz')
+  const [payMethod, setPayMethod] = useState('normal')
 
   const finalAmount = custom ? parseInt(custom) || 0 : amount
+  const selectedCause = DONATE_CAUSES.find(c => c.id === cause)
+  const selectedMethod = PAYMENT_METHODS.find(m => m.id === payMethod)
 
   const handleDonate = () => {
     if (finalAmount < 1) return
-    // Build Nedarim Plus URL with amount parameter
-    const freqParam = freq === 'monthly' ? '&PaymentType=Haoraat_Keva' : ''
-    const url = `${NEDARIM_BASE}&Amount=${finalAmount}${freqParam}`
+    const groupe = encodeURIComponent(selectedCause.groupe)
+    const url = `${BASE}&Amount=${finalAmount}&groupe=${groupe}&${selectedMethod.param}`
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 
-  const FREQ_OPTIONS = [
-    { val: 'one', label: 'חד פעמי' },
-    { val: 'monthly', label: 'חודשי' },
-  ]
-
   return (
     <section id="donate" className="relative overflow-hidden py-24 bg-gradient-to-br from-[#0D1B2A] to-[#1A2E44] text-white">
-      {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full bg-[#C8963E]/10 blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full bg-[#C8963E]/8 blur-3xl" />
       </div>
 
       <div className="relative max-w-3xl mx-auto px-5 md:px-8">
@@ -701,10 +774,7 @@ function Donate() {
           <span className="inline-block px-5 py-2 rounded-full bg-[#C8963E]/20 border border-[#E8B86D]/20 text-[#F6D18D] text-sm mb-6">
             🔒 תרומה מאובטחת דרך נדרים פלוס
           </span>
-          <h3
-            className="text-4xl md:text-5xl font-bold mb-5 leading-tight"
-            style={{ fontFamily: '"Frank Ruhl Libre", serif' }}
-          >
+          <h3 className="text-4xl md:text-5xl font-bold mb-5 leading-tight" style={{ fontFamily: '"Frank Ruhl Libre", serif' }}>
             יחד ממשיכים להחזיק
             <span className="block text-[#E8B86D]">עולם של תורה וחסד</span>
           </h3>
@@ -713,89 +783,78 @@ function Donate() {
           </p>
         </div>
 
-        {/* Donation card */}
-        <div className="bg-white/8 backdrop-blur-xl border border-white/10 rounded-3xl p-7 md:p-10 shadow-2xl">
+        {/* Card */}
+        <div className="bg-white/8 backdrop-blur-xl border border-white/10 rounded-3xl p-7 md:p-10 shadow-2xl space-y-8">
 
-          {/* Frequency */}
-          <div className="mb-7">
-            <p className="text-[#E8B86D] text-xs font-semibold uppercase tracking-wider mb-3">סוג התרומה</p>
-            <div className="inline-flex bg-white/6 rounded-2xl p-1 border border-white/10 w-full max-w-xs">
-              {FREQ_OPTIONS.map(({ val, label }) => (
-                <button
-                  key={val}
-                  onClick={() => setFreq(val)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    freq === val
-                      ? 'bg-[#C8963E] text-white shadow-lg'
-                      : 'text-[#B7AEA1] hover:text-white'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            {freq === 'monthly' && (
-              <p className="text-[#E8B86D] text-xs mt-2 opacity-80">
-                ✓ הוראת קבע — ניתן לביטול בכל עת
-              </p>
-            )}
-          </div>
-
-          {/* Cause */}
-          <div className="mb-7">
-            <p className="text-[#E8B86D] text-xs font-semibold uppercase tracking-wider mb-3">ייעוד התרומה</p>
-            <div className="grid grid-cols-4 gap-2">
-              {DONATE_CAUSES.map(({ id, label, emoji }) => (
+          {/* ── STEP 1: Cause ── */}
+          <div>
+            <p className="text-[#E8B86D] text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-[#C8963E] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+              ייעוד התרומה
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {DONATE_CAUSES.map(({ id, shortLabel, emoji, label }) => (
                 <button
                   key={id}
                   onClick={() => setCause(id)}
-                  className={`py-3 px-2 rounded-2xl text-xs font-medium transition-all flex flex-col items-center gap-1.5 border ${
+                  className={`py-4 px-4 rounded-2xl text-sm font-medium transition-all flex items-center gap-3 border text-right ${
                     cause === id
-                      ? 'bg-[#C8963E]/30 border-[#E8B86D] text-white'
+                      ? 'bg-[#C8963E]/25 border-[#E8B86D] text-white shadow-lg'
                       : 'bg-white/5 border-white/10 text-[#B7AEA1] hover:bg-white/10 hover:text-white'
                   }`}
                 >
-                  <span className="text-lg">{emoji}</span>
-                  <span className="leading-tight text-center">{label}</span>
+                  <span className="text-xl flex-shrink-0">{emoji}</span>
+                  <span className="leading-tight">{shortLabel}</span>
+                  {cause === id && (
+                    <span className="mr-auto w-4 h-4 rounded-full bg-[#E8B86D] flex items-center justify-center flex-shrink-0">
+                      <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
+                        <path d="M1 3L3 5L7 1" stroke="#0D1B2A" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
+            {selectedCause && (
+              <p className="text-[#8A9BAE] text-xs mt-2 pr-1">{selectedCause.label}</p>
+            )}
           </div>
 
-          {/* Amount */}
-          <div className="mb-8">
-            <p className="text-[#E8B86D] text-xs font-semibold uppercase tracking-wider mb-3">בחרו סכום</p>
+          {/* ── STEP 2: Amount ── */}
+          <div>
+            <p className="text-[#E8B86D] text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-[#C8963E] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+              סכום התרומה
+            </p>
             <div className="grid grid-cols-3 gap-3 mb-4">
-              {DONATE_AMOUNTS.map(({ label, value, desc }) => (
+              {DONATE_AMOUNTS.map(({ value, desc, featured }) => (
                 <button
                   key={value}
                   onClick={() => { setAmount(value); setCustom('') }}
-                  className={`py-4 rounded-2xl font-bold text-base transition-all relative flex flex-col items-center gap-0.5 border ${
+                  className={`py-4 rounded-2xl font-bold text-lg transition-all relative flex flex-col items-center gap-0.5 border ${
                     amount === value && !custom
                       ? 'bg-[#C8963E] border-[#E8B86D] text-white shadow-xl scale-105'
-                      : 'bg-white/8 border-white/15 text-white hover:bg-white/15 hover:scale-102'
+                      : 'bg-white/8 border-white/15 text-white hover:bg-white/15'
                   }`}
                 >
-                  {desc === 'מומלץ ⭐' && (
-                    <span className="absolute -top-2 right-1/2 translate-x-1/2 bg-[#E8B86D] text-[#0D1B2A] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      מומלץ
+                  {featured && (
+                    <span className="absolute -top-2.5 right-1/2 translate-x-1/2 bg-[#E8B86D] text-[#0D1B2A] text-[9px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                      ✦ מומלץ
                     </span>
                   )}
-                  <span>{label}</span>
-                  <span className={`text-[10px] font-normal ${amount === value && !custom ? 'text-white/80' : 'text-[#8A9BAE]'}`}>
-                    {desc !== 'מומלץ ⭐' ? desc : ''}
+                  <span>₪{value.toLocaleString()}</span>
+                  <span className={`text-[10px] font-normal ${amount === value && !custom ? 'text-white/75' : 'text-[#8A9BAE]'}`}>
+                    {desc}
                   </span>
                 </button>
               ))}
             </div>
-
-            {/* Custom amount */}
             <div className="relative">
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#E8B86D] font-bold">₪</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#E8B86D] font-bold text-lg">₪</span>
               <input
                 type="number"
                 min="1"
-                placeholder="סכום אחר..."
+                placeholder="סכום אחר לפי בחירתכם..."
                 value={custom}
                 onChange={e => { setCustom(e.target.value); setAmount(0) }}
                 className="w-full pr-10 pl-4 py-4 rounded-2xl bg-white/8 border border-white/15 text-white placeholder-white/30 text-sm outline-none focus:border-[#E8B86D] focus:bg-white/12 transition text-right"
@@ -803,42 +862,68 @@ function Donate() {
             </div>
           </div>
 
-          {/* Summary + CTA */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6">
-            <div className="flex justify-between text-sm text-[#B7AEA1] mb-2">
-              <span>סוג</span>
-              <span className="text-white font-medium">{freq === 'monthly' ? 'הוראת קבע חודשית' : 'תרומה חד פעמית'}</span>
+          {/* ── STEP 3: Payment method ── */}
+          <div>
+            <p className="text-[#E8B86D] text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-[#C8963E] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+              אמצעי תשלום
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {PAYMENT_METHODS.map(({ id, label, desc, icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setPayMethod(id)}
+                  className={`py-4 px-3 rounded-2xl transition-all flex flex-col items-center gap-2 border ${
+                    payMethod === id
+                      ? 'bg-white/15 border-[#E8B86D] text-white shadow-lg'
+                      : 'bg-white/5 border-white/10 text-[#B7AEA1] hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <div className={payMethod === id ? 'opacity-100' : 'opacity-60'}>{icon}</div>
+                  <span className="text-xs font-semibold">{label}</span>
+                  <span className="text-[10px] opacity-60">{desc}</span>
+                </button>
+              ))}
             </div>
+          </div>
+
+          {/* ── Summary ── */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
             <div className="flex justify-between text-sm text-[#B7AEA1] mb-2">
               <span>ייעוד</span>
-              <span className="text-white font-medium">{DONATE_CAUSES.find(c => c.id === cause)?.label}</span>
+              <span className="text-white font-medium">{selectedCause?.shortLabel}</span>
             </div>
-            <div className="flex justify-between text-sm text-[#B7AEA1] pt-3 border-t border-white/10">
-              <span className="font-semibold">סכום התרומה</span>
-              <span className="text-[#E8B86D] font-bold text-lg">
+            <div className="flex justify-between text-sm text-[#B7AEA1] mb-2">
+              <span>אמצעי תשלום</span>
+              <span className="text-white font-medium">{selectedMethod?.label}</span>
+            </div>
+            <div className="flex justify-between items-center pt-3 border-t border-white/10">
+              <span className="text-sm text-[#B7AEA1] font-semibold">סכום התרומה</span>
+              <span className="text-[#E8B86D] font-bold text-2xl">
                 {finalAmount > 0 ? `₪${finalAmount.toLocaleString()}` : '—'}
               </span>
             </div>
           </div>
 
+          {/* ── CTA ── */}
           <button
             onClick={handleDonate}
             disabled={finalAmount < 1}
-            className="w-full py-5 rounded-2xl bg-gradient-to-l from-[#9B6E22] to-[#E8B86D] text-white text-lg font-bold shadow-2xl hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(200,150,62,0.5)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-3"
+            className="w-full py-5 rounded-2xl bg-gradient-to-l from-[#9B6E22] to-[#E8B86D] text-white text-xl font-bold shadow-2xl hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(200,150,62,0.5)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-3"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <rect x="1" y="4" width="22" height="16" rx="2"/>
               <line x1="1" y1="10" x2="23" y2="10"/>
             </svg>
-            תרמו {finalAmount > 0 ? `₪${finalAmount.toLocaleString()}` : ''} עכשיו
+            תרמו {finalAmount > 0 ? `₪${finalAmount.toLocaleString()}` : ''} עכשיו →
           </button>
 
-          {/* Trust badges */}
-          <div className="flex flex-wrap justify-center gap-4 mt-5 text-[#8A9BAE] text-xs">
-            <span>🔒 תשלום מאובטח</span>
-            <span>📄 סעיף 46</span>
-            <span>🏦 נדרים פלוס</span>
-            <span>💳 ביט / אשראי</span>
+          {/* Trust */}
+          <div className="flex flex-wrap justify-center gap-5 text-[#8A9BAE] text-xs pt-1">
+            <span className="flex items-center gap-1">🔒 SSL מאובטח</span>
+            <span className="flex items-center gap-1">📄 סעיף 46</span>
+            <span className="flex items-center gap-1">🏦 נדרים פלוס</span>
+            <span className="flex items-center gap-1">✓ עמותה רשומה</span>
           </div>
         </div>
       </div>
