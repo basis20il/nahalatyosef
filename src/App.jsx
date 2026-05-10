@@ -352,7 +352,7 @@ function AskRabbi() {
     setErrors({})
     setLoading(true)
     try {
-      const res = await fetch('https://formspree.io/f/REPLACE_ME', {
+      const res = await fetch('https://formspree.io/f/xojrpjpn', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
