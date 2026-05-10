@@ -332,7 +332,7 @@ function QuickLinks() {
 
 /* ─── ASK THE RABBI ─── */
 function AskRabbi() {
-  const [form, setForm] = useState({ name: '', topic: '', question: '' })
+  const [form, setForm] = useState({ name: '', phone: '', topic: '', question: '' })
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -352,11 +352,12 @@ function AskRabbi() {
     setErrors({})
     setLoading(true)
     try {
-      const res = await fetch('https://formspree.io/f/xojrpjpn', {
+      const res = await fetch('https://formspree.io/f/REPLACE_ME', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           name: form.name,
+          phone: form.phone,
           topic: form.topic,
           question: form.question,
           _subject: 'שאלה לרב: ' + form.topic,
@@ -369,7 +370,7 @@ function AskRabbi() {
   }
 
   const handleWhatsApp = () => {
-    const msg = encodeURIComponent(`שלום, שמי ${form.name||'___'}. נושא: ${form.topic||'___'}. שאלה: ${form.question||'___'}`)
+    const msg = encodeURIComponent(`שלום, שמי ${form.name||'___'}. טלפון: ${form.phone||'___'}. נושא: ${form.topic||'___'}. שאלה: ${form.question||'___'}`)
     window.open('https://wa.me/97289945080?text=' + msg, '_blank')
   }
 
@@ -423,7 +424,7 @@ function AskRabbi() {
                 <h4 className="text-2xl font-bold" style={{ fontFamily: '"Frank Ruhl Libre", serif' }}>שאלתכם נשלחה בהצלחה!</h4>
                 <p className="text-[#6B5A46]">הרב יחזור אליכם תוך 24 שעות</p>
                 <button
-                  onClick={() => { setSent(false); setForm({ name: '', topic: '', question: '' }) }}
+                  onClick={() => { setSent(false); setForm({ name: '', phone: '', topic: '', question: '' }) }}
                   className="px-6 py-3 rounded-xl border border-[#C8963E] text-[#9B6E22] hover:bg-[#C8963E]/10 transition"
                 >
                   שלחו שאלה נוספת
@@ -437,6 +438,7 @@ function AskRabbi() {
                 <div className="space-y-5">
                   {[
                     { id: 'name', label: 'שם מלא', type: 'text', placeholder: 'הקלידו את שמכם' },
+                    { id: 'phone', label: 'טלפון לתשובה', type: 'tel', placeholder: '05X-XXXXXXX' },
                     { id: 'topic', label: 'נושא השאלה', type: 'text', placeholder: 'הלכה / חינוך / שלום בית' },
                   ].map(({ id, label, type, placeholder }) => (
                     <div key={id}>
@@ -647,84 +649,198 @@ function Stats() {
 }
 
 /* ─── DONATE ─── */
-const AMOUNTS = [36, 72, 180, 360, 720]
+const NEDARIM_BASE = 'https://www.matara.pro/nedarimplus/online/?mosad=7011565&Redirect=https%3A%2F%2F089945080.xyz%2F'
+
+const DONATE_AMOUNTS = [
+  { label: '₪36', value: 36, desc: 'תרומה קטנה' },
+  { label: '₪72', value: 72, desc: 'תרומת לב' },
+  { label: '₪180', value: 180, desc: 'מומלץ ⭐' },
+  { label: '₪360', value: 360, desc: 'תרומה נכבדה' },
+  { label: '₪720', value: 720, desc: 'תרומת שנה' },
+  { label: '₪1800', value: 1800, desc: 'תורם מכובד' },
+]
+
+const DONATE_CAUSES = [
+  { id: 'general', label: 'כללי', emoji: '✡️' },
+  { id: 'torah', label: 'שיעורי תורה', emoji: '📖' },
+  { id: 'kolel', label: 'כולל אברכים', emoji: '🎓' },
+  { id: 'chesed', label: 'חסד ומשפחות', emoji: '🏠' },
+]
 
 function Donate() {
   const [amount, setAmount] = useState(180)
   const [custom, setCustom] = useState('')
   const [freq, setFreq] = useState('one')
+  const [cause, setCause] = useState('general')
 
   const finalAmount = custom ? parseInt(custom) || 0 : amount
 
+  const handleDonate = () => {
+    if (finalAmount < 1) return
+    // Build Nedarim Plus URL with amount parameter
+    const freqParam = freq === 'monthly' ? '&PaymentType=Haoraat_Keva' : ''
+    const url = `${NEDARIM_BASE}&Amount=${finalAmount}${freqParam}`
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  const FREQ_OPTIONS = [
+    { val: 'one', label: 'חד פעמי' },
+    { val: 'monthly', label: 'חודשי' },
+  ]
+
   return (
     <section id="donate" className="relative overflow-hidden py-24 bg-gradient-to-br from-[#0D1B2A] to-[#1A2E44] text-white">
-      <div className="absolute inset-0 opacity-[0.06]" style={{
-        backgroundImage: `radial-gradient(circle at 70% 30%, #E8B86D, transparent 50%)`,
-      }} />
+      {/* Background glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full bg-[#C8963E]/10 blur-3xl" />
+      </div>
 
-      <div className="relative max-w-4xl mx-auto text-center px-5 md:px-8">
-        <span className="inline-block px-5 py-2 rounded-full bg-[#C8963E]/20 border border-[#E8B86D]/20 text-[#F6D18D] text-sm mb-8">
-          🔒 תרומה מאובטחת ומוצפנת
-        </span>
-
-        <h3
-          className="text-4xl md:text-5xl font-bold mb-6 leading-tight"
-          style={{ fontFamily: '"Frank Ruhl Libre", serif' }}
-        >
-          יחד ממשיכים להחזיק
-          <span className="block text-[#E8B86D]">עולם של תורה וחסד</span>
-        </h3>
-
-        <p className="text-lg text-[#C8BFB3] leading-9 max-w-2xl mx-auto mb-12">
-          כל תרומה מסייעת להמשך פעילות הכוללים, שיעורי התורה, התמיכה במשפחות ופעילות הקירוב בכל רחבי הארץ.
-        </p>
-
-        {/* Frequency toggle */}
-        <div className="inline-flex bg-white/8 rounded-2xl p-1 mb-8 border border-white/10">
-          {[{ val: 'one', label: 'חד פעמי' }, { val: 'monthly', label: 'חודשי' }, { val: 'yearly', label: 'שנתי' }].map(({ val, label }) => (
-            <button
-              key={val}
-              onClick={() => setFreq(val)}
-              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                freq === val ? 'bg-[#C8963E] text-white shadow-lg' : 'text-[#B7AEA1] hover:text-white'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+      <div className="relative max-w-3xl mx-auto px-5 md:px-8">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <span className="inline-block px-5 py-2 rounded-full bg-[#C8963E]/20 border border-[#E8B86D]/20 text-[#F6D18D] text-sm mb-6">
+            🔒 תרומה מאובטחת דרך נדרים פלוס
+          </span>
+          <h3
+            className="text-4xl md:text-5xl font-bold mb-5 leading-tight"
+            style={{ fontFamily: '"Frank Ruhl Libre", serif' }}
+          >
+            יחד ממשיכים להחזיק
+            <span className="block text-[#E8B86D]">עולם של תורה וחסד</span>
+          </h3>
+          <p className="text-[#C8BFB3] leading-8 max-w-xl mx-auto">
+            כל תרומה מסייעת לפעילות הכוללים, שיעורי התורה, התמיכה במשפחות וקירוב לבבות ברחבי הארץ.
+          </p>
         </div>
 
-        {/* Amount buttons */}
-        <div className="flex flex-wrap justify-center gap-3 mb-6">
-          {AMOUNTS.map(a => (
-            <button
-              key={a}
-              onClick={() => { setAmount(a); setCustom('') }}
-              className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all ${
-                amount === a && !custom
-                  ? 'bg-[#C8963E] text-white shadow-xl scale-105'
-                  : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
-              }`}
-            >
-              ₪{a}
-            </button>
-          ))}
-          <input
-            type="number"
-            placeholder="סכום אחר"
-            value={custom}
-            onChange={e => { setCustom(e.target.value); setAmount(0) }}
-            className="px-6 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 text-sm w-32 outline-none focus:border-[#E8B86D] focus:bg-white/15 transition"
-          />
+        {/* Donation card */}
+        <div className="bg-white/8 backdrop-blur-xl border border-white/10 rounded-3xl p-7 md:p-10 shadow-2xl">
+
+          {/* Frequency */}
+          <div className="mb-7">
+            <p className="text-[#E8B86D] text-xs font-semibold uppercase tracking-wider mb-3">סוג התרומה</p>
+            <div className="inline-flex bg-white/6 rounded-2xl p-1 border border-white/10 w-full max-w-xs">
+              {FREQ_OPTIONS.map(({ val, label }) => (
+                <button
+                  key={val}
+                  onClick={() => setFreq(val)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    freq === val
+                      ? 'bg-[#C8963E] text-white shadow-lg'
+                      : 'text-[#B7AEA1] hover:text-white'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {freq === 'monthly' && (
+              <p className="text-[#E8B86D] text-xs mt-2 opacity-80">
+                ✓ הוראת קבע — ניתן לביטול בכל עת
+              </p>
+            )}
+          </div>
+
+          {/* Cause */}
+          <div className="mb-7">
+            <p className="text-[#E8B86D] text-xs font-semibold uppercase tracking-wider mb-3">ייעוד התרומה</p>
+            <div className="grid grid-cols-4 gap-2">
+              {DONATE_CAUSES.map(({ id, label, emoji }) => (
+                <button
+                  key={id}
+                  onClick={() => setCause(id)}
+                  className={`py-3 px-2 rounded-2xl text-xs font-medium transition-all flex flex-col items-center gap-1.5 border ${
+                    cause === id
+                      ? 'bg-[#C8963E]/30 border-[#E8B86D] text-white'
+                      : 'bg-white/5 border-white/10 text-[#B7AEA1] hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <span className="text-lg">{emoji}</span>
+                  <span className="leading-tight text-center">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Amount */}
+          <div className="mb-8">
+            <p className="text-[#E8B86D] text-xs font-semibold uppercase tracking-wider mb-3">בחרו סכום</p>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {DONATE_AMOUNTS.map(({ label, value, desc }) => (
+                <button
+                  key={value}
+                  onClick={() => { setAmount(value); setCustom('') }}
+                  className={`py-4 rounded-2xl font-bold text-base transition-all relative flex flex-col items-center gap-0.5 border ${
+                    amount === value && !custom
+                      ? 'bg-[#C8963E] border-[#E8B86D] text-white shadow-xl scale-105'
+                      : 'bg-white/8 border-white/15 text-white hover:bg-white/15 hover:scale-102'
+                  }`}
+                >
+                  {desc === 'מומלץ ⭐' && (
+                    <span className="absolute -top-2 right-1/2 translate-x-1/2 bg-[#E8B86D] text-[#0D1B2A] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      מומלץ
+                    </span>
+                  )}
+                  <span>{label}</span>
+                  <span className={`text-[10px] font-normal ${amount === value && !custom ? 'text-white/80' : 'text-[#8A9BAE]'}`}>
+                    {desc !== 'מומלץ ⭐' ? desc : ''}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Custom amount */}
+            <div className="relative">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#E8B86D] font-bold">₪</span>
+              <input
+                type="number"
+                min="1"
+                placeholder="סכום אחר..."
+                value={custom}
+                onChange={e => { setCustom(e.target.value); setAmount(0) }}
+                className="w-full pr-10 pl-4 py-4 rounded-2xl bg-white/8 border border-white/15 text-white placeholder-white/30 text-sm outline-none focus:border-[#E8B86D] focus:bg-white/12 transition text-right"
+              />
+            </div>
+          </div>
+
+          {/* Summary + CTA */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6">
+            <div className="flex justify-between text-sm text-[#B7AEA1] mb-2">
+              <span>סוג</span>
+              <span className="text-white font-medium">{freq === 'monthly' ? 'הוראת קבע חודשית' : 'תרומה חד פעמית'}</span>
+            </div>
+            <div className="flex justify-between text-sm text-[#B7AEA1] mb-2">
+              <span>ייעוד</span>
+              <span className="text-white font-medium">{DONATE_CAUSES.find(c => c.id === cause)?.label}</span>
+            </div>
+            <div className="flex justify-between text-sm text-[#B7AEA1] pt-3 border-t border-white/10">
+              <span className="font-semibold">סכום התרומה</span>
+              <span className="text-[#E8B86D] font-bold text-lg">
+                {finalAmount > 0 ? `₪${finalAmount.toLocaleString()}` : '—'}
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleDonate}
+            disabled={finalAmount < 1}
+            className="w-full py-5 rounded-2xl bg-gradient-to-l from-[#9B6E22] to-[#E8B86D] text-white text-lg font-bold shadow-2xl hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(200,150,62,0.5)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-3"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            תרמו {finalAmount > 0 ? `₪${finalAmount.toLocaleString()}` : ''} עכשיו
+          </button>
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap justify-center gap-4 mt-5 text-[#8A9BAE] text-xs">
+            <span>🔒 תשלום מאובטח</span>
+            <span>📄 סעיף 46</span>
+            <span>🏦 נדרים פלוס</span>
+            <span>💳 ביט / אשראי</span>
+          </div>
         </div>
-
-        <button className="px-12 py-5 rounded-2xl bg-gradient-to-l from-[#9B6E22] to-[#E8B86D] text-white text-lg font-bold shadow-2xl hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(200,150,62,0.5)] transition-all duration-300">
-          תרמו ₪{finalAmount > 0 ? finalAmount : '—'} עכשיו
-        </button>
-
-        <p className="mt-4 text-[#8A9BAE] text-sm">
-          תרומות כפופות לסעיף 46 לפקודת מס הכנסה · עמותה רשומה
-        </p>
       </div>
     </section>
   )
